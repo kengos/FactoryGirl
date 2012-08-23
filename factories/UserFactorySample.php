@@ -10,4 +10,4 @@ return array(
     'name' => 'KengoSuzuki',
     'login_name' => 'kengos'
   )
-];
+);
