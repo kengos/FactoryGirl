@@ -38,13 +38,13 @@ return array(
 ?>
 
 // In Your tests
-$user = FactoryGirl.create('User')
+$user = FactoryGirl::create('User')
 $user->permission; // -> 'default'
 
-$user = FactoryGirl.create('User', array('permission'->'admin'));
+$user = FactoryGirl::create('User', array('permission'->'admin'));
 $user->permission; // -> 'admin'
 
-$admin = FactoryGirl.create('User', array(), 'admin');
+$admin = FactoryGirl::create('User', array(), 'admin');
 $admin->permission; // -> 'admin'
 ````
 
