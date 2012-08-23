@@ -1,8 +1,8 @@
 # FactoryGirlPhp
 
-For Yii framework
+FactoryGirl is a fixtures replacement tool for Yii framework
 
-Like Ruby gem 'factory_girl'
+Like Ruby gem `factory_girl`
 
 ## Install
 
@@ -47,3 +47,8 @@ $user->permission; // -> 'admin'
 $admin = FactoryGirl.create('User', array(), 'admin');
 $admin->permission; // -> 'admin'
 ````
+
+## Features
+
+* Support sequence
+* Support association
