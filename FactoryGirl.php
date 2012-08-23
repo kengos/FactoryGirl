@@ -22,7 +22,7 @@ class FactoryGirl
    */
   public static function build($class, $args = array(), $alias = null)
   {
-    return self::buildClass($class);
+    return self::buildClass($class, $args, $alias);
   }
 
   /**
@@ -30,7 +30,7 @@ class FactoryGirl
    */
   public static function attributes_for($class, $args = array(), $alias = null)
   {
-    return self::buildClass($class)->getAttributes();
+    return self::buildClass($class, $args, $alias)->getAttributes();
   }
 
   /**
@@ -38,7 +38,7 @@ class FactoryGirl
    */
   public static function create($class, $args = array(), $alias = null)
   {
-    $obj = self::buildClass($class);
+    $obj = self::buildClass($class, $args, $alias);
     if($obj->save())
       return $obj;
     else
@@ -66,21 +66,27 @@ class FactoryGirl
       self::$cache = array();
 
     if(!isset(self::$cache[$class]))
-      self::$cache[$class] = require(self::getFactory($class));
+      self::$cache[$class] = self::getFactory($class);
 
     $classAttr = self::$cache[$class];
-    $obj = new $classAttr['class'];
-    if($alias===null)
-      $attributes = CMap::mergeArray($classAttr['attributes'], $args);
-    else
-      $attributes = CMap::mergeArray($classAttr[$alias]['attributes'], $args);
 
+    if(isset($classAttr['class']))
+      $obj = new $classAttr['class'];
+    else
+      $obj = new $class;
+
+    $attributes = $classAttr['attributes'];
+
+    if($alias!==null)
+      $attributes = CMap::mergeArray($attributes, $classAttr[$alias]);
+
+    $attributes = CMap::mergeArray($attributes, $args);
     $obj->setAttributes($attributes, false);
     return $obj;
   }
 
   protected static function getFactory($class)
   {
-    return $self::$factoryPath . DIRECTORY_SEPARATOR . $class . self::$fileSuffix;
+    return require(self::$factoryPath . DIRECTORY_SEPARATOR . $class . self::$fileSuffix);
   }
 }

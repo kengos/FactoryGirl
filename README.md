@@ -22,7 +22,7 @@ FactoryGirl::attributes_for('User')
 
 ````
 <?php
-
+// FileName UserFactory.php
 return array(
   'class' => 'User', // -> new User
   'attributes' => array(
