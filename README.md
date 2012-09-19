@@ -15,7 +15,7 @@ FactoryGirl::build('User')
 
 FactoryGirl::create('User')
 
-FactoryGirl::attributes_for('User')
+FactoryGirl::attributes('User')
 ````
 
 ## Factory file format
@@ -48,7 +48,24 @@ $admin = FactoryGirl::create('User', array(), 'admin');
 $admin->permission; // -> 'admin'
 ````
 
+## FactoryGirl Sequence
+
+```
+<?php
+
+return array(
+  'class' => 'Foo',
+  'attributes' => array(
+    'name' => 'bar_{{sequence}}',
+  ),
+);
+```
+
+```
+FactoryGirl::build('Foo')->name // -> bar_0
+FactoryGirl::build('Foo')->name // -> bar_1
+```
+
 ## Features
 
-* Support sequence
 * Support association
