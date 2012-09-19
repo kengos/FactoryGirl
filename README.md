@@ -10,17 +10,17 @@ Download FacotyGirl.tgz or `git clone git://github.com/kengos/FactoryGirl.git pr
 
 ## Usage
 
-````
+```
 FactoryGirl::build('User')
 
 FactoryGirl::create('User')
 
 FactoryGirl::attributes('User')
-````
+```
 
 ## Factory file format
 
-````
+```
 <?php
 // FileName UserFactory.php
 return array(
@@ -46,7 +46,9 @@ $user->permission; // -> 'admin'
 
 $admin = FactoryGirl::create('User', array(), 'admin');
 $admin->permission; // -> 'admin'
-````
+```
+
+more details see `tests/FactoryGirlTest.php`
 
 ## FactoryGirl Sequence
 
@@ -59,6 +61,7 @@ return array(
     'name' => 'bar_{{sequence}}',
   ),
 );
+?>
 ```
 
 ```
@@ -66,6 +69,12 @@ FactoryGirl::build('Foo')->name // -> bar_0
 FactoryGirl::build('Foo')->name // -> bar_1
 ```
 
-## Features
+more details see `tests/FactorySequenceTest.php`
 
-* Support association
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Added some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
