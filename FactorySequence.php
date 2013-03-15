@@ -10,7 +10,7 @@
 class FactorySequence
 {
   CONST DEFAULT_SYMBOL = 'default';
-  protected static $_sequence = [];
+  protected static $_sequence = array();
   protected static $_regexp = "/({{sequence(\(:(.*)\)){0,}?}})/";
 
   /**
@@ -54,7 +54,7 @@ class FactorySequence
    */
   public static function resetAll()
   {
-    self::$_sequence = [];
+    self::$_sequence = array();
   }
 
   /**

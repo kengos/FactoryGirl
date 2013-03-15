@@ -46,6 +46,17 @@ class FactoryGirlTest extends PHPUnit_Framework_TestCase
     $this->assertEquals('foo_bar_baz', $foo->name);
     $this->assertEquals(200, $foo->code);
   }
+
+  public function testFlush()
+  {
+    $foo = FactoryGirl::create("Foo");
+    $model = $this -> getMock("Model", array("deleteAll"));
+    $model -> expects($this -> once())
+      -> method("deleteAll");
+    Foo::$_model = $model;
+
+    FactoryGirl::flush();
+  }
 }
 
 class Foo
@@ -53,10 +64,22 @@ class Foo
   public $name;
   public $code;
 
+  public static $_model;
+
   public function save()
   {
     return true;
   }
+
+  public static function model()
+  {
+    return self::$_model;
+  }
+
+}
+
+class Model {
+  function deleteAll(){}
 }
 
 class Bar
@@ -68,3 +91,4 @@ class Bar
     return false;
   }
 }
+

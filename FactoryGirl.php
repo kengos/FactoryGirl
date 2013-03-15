@@ -19,6 +19,8 @@ class FactoryGirl
   public static $factoryPath = FACTORY_PATH;
   public static $fileSuffix = FACTORY_FILE_SUFFIX;
 
+  private static $createdClasses = array();
+
   /**
    * @return $class object (not saved)
    */
@@ -41,10 +43,12 @@ class FactoryGirl
   public static function create($class, $args = array(), $alias = null)
   {
     $obj = self::buildClass($class, $args, $alias);
-    if($obj->save())
+    if($obj->save()) {
+      self::$createdClasses[$class] = true;
       return $obj;
-    else
+    } else {
       throw new FactoryException('Cannot Save ' . $class, $obj);
+    }
   }
 
   public static function clear()
@@ -101,6 +105,13 @@ class FactoryGirl
       self::$cache[$class] = require(self::$factoryPath . DIRECTORY_SEPARATOR . $class . self::$fileSuffix);
 
     return self::$cache[$class];
+  }
+
+  static function flush()
+  {
+    foreach (self::$createdClasses as $className => $value) {
+      $className::model() -> deleteAll();
+    }
   }
 }
 

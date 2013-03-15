@@ -46,6 +46,9 @@ $user->permission; // -> 'admin'
 
 $admin = FactoryGirl::create('User', array(), 'admin');
 $admin->permission; // -> 'admin'
+
+// after each test case
+FactoryGirl::flush(); // remove created records
 ```
 
 more details see `tests/FactoryGirlTest.php`
