@@ -2,7 +2,6 @@
 
 guard 'shell' do
   watch(%r{^src/(.*)\.php$}){|m|
-    p m
     filename = "tests/#{m[1]}Test.php"
     if FileTest.exist?(filename)
       run_phpunit(filename)
@@ -16,16 +15,17 @@ end
 def run_phpunit(filename)
   puts "\n>> run: #{filename} @ #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
   result = `./phpunit --bootstrap tests/bootstrap.php --verbose #{filename}`
+  test_result = result.split(/\r\n|\r|\n/).last
+
   filename = File.basename(filename)
-  if result =~ /OK/
-    result =~ /(Tests:.+Assertions:.+|\(.+tests.+assertions.?\))/
-    success = $+
-    n "#{filename}\n#{success}", 'Test passed'
+  if test_result =~ /Failures/
+    n "#{filename}\n#{test_result}", 'Test failed :('
+    puts ">> Failed\n" + result
+  elsif test_result =~ /Incomplete/
+    n "#{filename}\n#{test_result}", 'Passed (but incomplete tests)'
     puts ">> Passed\n" + result
   else
-    result =~ /(Tests:.+Assertions:.+Failures:.+)/
-    failure = $+
-    n "#{filename}\n#{failure}", 'Test failed'
-    puts ">> Failed\n" + result
+    n "#{filename}\n#{test_result}", 'Test complete :)'
+    puts ">> Passed\n" + result
   end
 end
