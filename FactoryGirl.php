@@ -107,7 +107,7 @@ class FactoryGirl
     return self::$cache[$class];
   }
 
-  static function flush()
+  public static function flush()
   {
     foreach (self::$createdClasses as $className => $value) {
       $className::model() -> deleteAll();
