@@ -1,7 +1,8 @@
 # coding: utf-8
 
 guard 'shell' do
-  watch(%r{^factory_girl/(.*)\.php$}){|m|
+  watch(%r{^src/(.*)\.php$}){|m|
+    p m
     filename = "tests/#{m[1]}Test.php"
     if FileTest.exist?(filename)
       run_phpunit(filename)
@@ -9,7 +10,7 @@ guard 'shell' do
       puts "\n>> Not found #{filename}\n"
     end
   }
-  watch(%r{^tests/(.*)Test\.php$}) {|m| run_phpunit(m[0]) }
+  watch(%r{^tests/.*/(.*)Test\.php$}) {|m| run_phpunit(m[0]) }
 end
 
 def run_phpunit(filename)

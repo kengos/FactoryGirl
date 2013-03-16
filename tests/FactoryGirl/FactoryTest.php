@@ -1,10 +1,13 @@
 <?php
 
-class FactoryGirlTest extends PHPUnit_Framework_TestCase
+use FactoryGirl\Factory as FactoryGirl;
+
+class FactoryTest extends PHPUnit_Framework_TestCase
 {
   public function setup()
   {
-    FactorySequence::resetAll();
+    FactoryGirl::setup(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'factories');
+    FactoryGirl::resetSequence();
   }
 
   public function testCreate()
@@ -19,7 +22,7 @@ class FactoryGirlTest extends PHPUnit_Framework_TestCase
 
   /**
    * save method returns false, throw FactoryException
-   * @expectedException FactoryException
+   * @expectedException FactoryGirl\FactoryException
    */
   public function testCreateFailure()
   {
@@ -91,4 +94,3 @@ class Bar
     return false;
   }
 }
-

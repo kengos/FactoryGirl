@@ -1,9 +1,6 @@
 <?php
 
-defined('FACTORY_PATH') or define('FACTORY_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR . 'factories');
-defined('FACTORY_FILE_SUFFIX') or define('FACTORY_FILE_SUFFIX', 'Factory.php');
-defined('SEQUENCE_PATH') or define('SEQUENCE_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR . 'FactorySequence.php');
-require_once(SEQUENCE_PATH);
+namespace FactoryGirl;
 
 /**
  * FactoryGirl is a fixtures replacement tool for PHP
@@ -13,13 +10,28 @@ require_once(SEQUENCE_PATH);
  * @license MIT
  * @link https://github.com/kengos/FactoryGirl
  */
-class FactoryGirl
+class Factory
 {
   public static $cache;
-  public static $factoryPath = FACTORY_PATH;
-  public static $fileSuffix = FACTORY_FILE_SUFFIX;
+  public static $factoryPaths;
+  public static $fileSuffix;
 
   private static $createdClasses = array();
+
+  public static function setup($factoryPaths, $fileSuffix = 'Factory.php')
+  {
+    self::$factoryPaths = array();
+    if(is_string($factoryPaths))
+      self::$factoryPaths[] = $factoryPaths;
+    elseif(is_array($factoryPaths))
+      self::$factoryPaths = $factoryPaths;
+    self::$fileSuffix = $fileSuffix;
+  }
+
+  public static function resetSequence()
+  {
+    \FactoryGirl\Sequence::resetAll();
+  }
 
   /**
    * @return $class object (not saved)
@@ -70,11 +82,7 @@ class FactoryGirl
   {
     $classAttr = self::getFactory($class);
 
-    if(isset($classAttr['class']))
-      $obj = new $classAttr['class'];
-    else
-      $obj = new $class;
-
+    $obj = isset($classAttr['class']) ? new $classAttr['class'] : new $class;
     $attributes = self::buildAttributes($class, $args, $alias);
     foreach ($attributes as $key => $value) {
       $obj->$key = $value;
@@ -91,7 +99,7 @@ class FactoryGirl
 
     $attributes = array_merge($attributes, $args);
     foreach ($attributes as $key => $value) {
-      $attributes[$key] = FactorySequence::get($value);
+      $attributes[$key] = \FactoryGirl\Sequence::get($value);
     }
     return $attributes;
   }
@@ -101,10 +109,16 @@ class FactoryGirl
     if(self::$cache===null)
       self::$cache = array();
 
-    if(!isset(self::$cache[$class]))
-      self::$cache[$class] = require(self::$factoryPath . DIRECTORY_SEPARATOR . $class . self::$fileSuffix);
+    if(isset(self::$cache[$class]))
+      return self::$cache[$class];
 
-    return self::$cache[$class];
+    foreach (self::$factoryPaths as $path)
+    {
+      $file = $path . DIRECTORY_SEPARATOR . $class . self::$fileSuffix;
+      if(file_exists($file))
+        return self::$cache[$class] = require($file);
+    }
+    throw new \FactoryGirl\FactoryException('Not found factory file: ' . $class . self::$fileSuffix);
   }
 
   public static function flush()
@@ -115,7 +129,7 @@ class FactoryGirl
   }
 }
 
-class FactoryException extends Exception
+class FactoryException extends \Exception
 {
   public $errorObject;
 

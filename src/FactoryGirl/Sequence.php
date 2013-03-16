@@ -1,5 +1,7 @@
 <?php
 
+namespace FactoryGirl;
+
 /**
  * Generate sequential string
  *
@@ -7,7 +9,7 @@
  *   FactorySequence::get('foo_{{sequence}}'); // -> 'foo_0'
  *   FactorySequence::get('bar_{{sequence}}'); // -> 'bar_1'
  */
-class FactorySequence
+class Sequence
 {
   CONST DEFAULT_SYMBOL = 'default';
   protected static $_sequence = array();

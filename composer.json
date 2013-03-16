@@ -21,6 +21,6 @@
         "bin-dir": "."
     },
     "autoload": {
-        "psr-0": { "factory_girl": "." }
+        "psr-0": { "FactoryGirl": "src/" }
     }
 }
