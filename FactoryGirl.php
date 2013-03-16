@@ -112,6 +112,7 @@ class FactoryGirl
     foreach (self::$createdClasses as $className => $value) {
       $className::model() -> deleteAll();
     }
+    self::$createdClasses = array();
   }
 }
 
