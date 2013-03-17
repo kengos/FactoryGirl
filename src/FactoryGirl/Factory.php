@@ -17,17 +17,38 @@ class Factory
   protected static $_fileSuffix = 'Factory.php';
   protected static $_createdClasses = array();
   protected static $_definitions = array();
+  protected static $_tearDownMethods = array('resetDefinitions', 'flush');
 
-
-  public static function setup($factoryPaths, $fileSuffix = null)
+  /**
+   * @example
+   *   FactoryGirl::setup(['your/factory/path']);
+   */
+  public static function setup($factoryPaths, $fileSuffix = null, $tearDownMethods = null)
   {
     self::setFactoryPaths($factoryPaths);
     if(is_string($fileSuffix))
       self::setFileSuffix($fileSuffix);
+    if(is_array($tearDownMethods))
+      self::setTearDownMethods($tearDownMethods);
   }
 
   /**
-   * @return $class object (not saved)
+   * @example In your test
+   *  public function tearDown(){
+   *    FactoryGirl::tearDown();
+   *  }
+   */
+  public static function tearDown()
+  {
+    foreach (self::$_tearDownMethods as $method)
+    {
+      call_user_func(array('\FactoryGirl\Factory', $method));
+    }
+  }
+
+  /**
+   * Build Object
+   * @return $class object
    */
   public static function build($class, $args = array(), $alias = null)
   {
@@ -69,6 +90,9 @@ class Factory
     throw new FactoryException('Cannot Save ' . $class, $obj);
   }
 
+  /**
+   * Defined factory
+   */
   public static function defineFactory($name, $class, $attributes, $callback = null)
   {
     $classAttr = array();
@@ -80,49 +104,9 @@ class Factory
     self::$_definitions[$name] = $classAttr;
   }
 
-  protected static function buildClass(&$class, &$args, &$alias)
-  {
-    $classAttr = self::getFactory($class);
-
-    $obj = isset($classAttr['class']) ? new $classAttr['class'] : new $class;
-    $attributes = self::buildAttributes($class, $args, $alias);
-    foreach ($attributes as $key => $value) {
-      $obj->$key = $value;
-    }
-    return $obj;
-  }
-
-  protected static function buildAttributes(&$class, &$args, &$alias)
-  {
-    $classAttr = self::getFactory($class);
-    $attributes = $classAttr['attributes'];
-    if($alias!==null)
-      $attributes = array_merge($attributes, $classAttr[$alias]);
-
-    $attributes = array_merge($attributes, $args);
-    foreach ($attributes as $key => $value) {
-      $attributes[$key] = \FactoryGirl\Sequence::get($value);
-    }
-    return $attributes;
-  }
-
-  protected static function getFactory(&$class)
-  {
-    if(isset(self::$_definitions[$class]))
-      return self::$_definitions[$class];
-
-    if(isset(self::$_cache[$class]))
-      return self::$_cache[$class];
-
-    foreach (self::$_factoryPaths as $path)
-    {
-      $file = $path . DIRECTORY_SEPARATOR . $class . self::$_fileSuffix;
-      if(file_exists($file))
-        return self::$_cache[$class] = require($file);
-    }
-    throw new \FactoryGirl\FactoryException('Not found factory file: ' . $class . self::$_fileSuffix);
-  }
-
+  /**
+   * Clear created class object (called Foo::model()->deleteAll())
+   */
   public static function flush()
   {
     foreach (self::$_createdClasses as $className => $value) {
@@ -165,6 +149,66 @@ class Factory
   public static function setFileSuffix($fileSuffix)
   {
     self::$_fileSuffix = $fileSuffix;
+  }
+
+  public static function setTearDownMethods(array $methods)
+  {
+    self::$_tearDownMethods = $methods;
+  }
+
+
+  protected static function buildClass(&$class, &$args, &$alias)
+  {
+    $classAttr = self::getFactory($class);
+
+    $obj = isset($classAttr['class']) ? new $classAttr['class'] : new $class;
+    $attributes = self::buildAttributes($class, $args, $alias);
+    foreach ($attributes as $key => $value)
+    {
+      if(method_exists($obj, $key))
+      {
+        if(is_array($value))
+          call_user_func_array([$obj, $key], $value);
+        else
+          $obj->{$key}($value);
+      }
+      else
+      {
+        $obj->$key = $value;
+      }
+    }
+    return $obj;
+  }
+
+  protected static function buildAttributes(&$class, &$args, &$alias)
+  {
+    $classAttr = self::getFactory($class);
+    $attributes = $classAttr['attributes'];
+    if($alias!==null)
+      $attributes = array_merge($attributes, $classAttr[$alias]);
+
+    $attributes = array_merge($attributes, $args);
+    foreach ($attributes as $key => $value) {
+      $attributes[$key] = \FactoryGirl\Sequence::get($value);
+    }
+    return $attributes;
+  }
+
+  protected static function getFactory(&$class)
+  {
+    if(isset(self::$_definitions[$class]))
+      return self::$_definitions[$class];
+
+    if(isset(self::$_cache[$class]))
+      return self::$_cache[$class];
+
+    foreach (self::$_factoryPaths as $path)
+    {
+      $file = $path . DIRECTORY_SEPARATOR . $class . self::$_fileSuffix;
+      if(file_exists($file))
+        return self::$_cache[$class] = require($file);
+    }
+    throw new \FactoryGirl\FactoryException('Not found factory file: ' . $class . self::$_fileSuffix);
   }
 }
 

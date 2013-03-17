@@ -73,6 +73,19 @@ class FactoryTest extends PHPUnit_Framework_TestCase
     FactoryGirl::flush();
   }
 
+  public function testBuildClass()
+  {
+    FactoryGirl::defineFactory('Foobar', 'Foo', array('generate' => array('foo', 'bar')));
+    // should call generate('foo', 'bar')
+    $foobar = FactoryGirl::build('Foobar');
+    $this->assertEquals('foo', $foobar->name);
+    $this->assertEquals('bar', $foobar->code);
+
+    FactoryGirl::defineFactory('Barbaz', 'Foo', array('setName' => 'abc'));
+    $barbaz = FactoryGirl::build('Barbaz');
+    $this->assertEquals('abc', $barbaz->name);
+  }
+
   /**
    * test defineFactory callback & another save method
    */
@@ -82,7 +95,7 @@ class FactoryTest extends PHPUnit_Framework_TestCase
       $attrs['save'] = array('generate', 'aaaa', 'bbbb');
       return $attrs;
     };
-    FactoryGirl::defineFactory('Foobar', 'Foo', ['code' => 'defineCode'], $callback);
+    FactoryGirl::defineFactory('Foobar', 'Foo', array('code' => 'defineCode'), $callback);
     $foobar = FactoryGirl::create('Foobar');
     $this->assertEquals('aaaa', $foobar->name);
     $this->assertEquals('bbbb', $foobar->code);
@@ -90,11 +103,28 @@ class FactoryTest extends PHPUnit_Framework_TestCase
 
   public function testDefineFactory()
   {
-    FactoryGirl::defineFactory('Foobar', 'Foo', ['code' => 'defineCode', 'name' => 'define_{{sequence}}']);
+    FactoryGirl::defineFactory('Foobar', 'Foo', array('code' => 'defineCode', 'name' => 'define_{{sequence}}'));
     $foobar = FactoryGirl::create('Foobar');
     $this->assertTrue($foobar instanceof Foo);
     $this->assertEquals('defineCode', $foobar->code);
     $this->assertEquals('define_0', $foobar->name);
+  }
+
+  public function testTearDown()
+  {
+    FactoryGirl::defineFactory('Foobar', 'Foo', array());
+    FactoryGirl::build('Foobar');
+
+    // should call resetDefinitions
+    FactoryGirl::tearDown();
+    try
+    {
+      FactoryGirl::build('Foobar');
+      $this->fail('Not throws exception');
+    } catch(\FactoryGirl\FactoryException $e)
+    {
+      $this->assertTrue(true);
+    }
   }
 }
 
@@ -120,6 +150,11 @@ class Foo
     $this->name = $name;
     $this->code = $code;
     return $this->save();
+  }
+
+  public function setName($value)
+  {
+    $this->name = $value;
   }
 }
 
