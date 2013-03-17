@@ -28,11 +28,6 @@ class Factory
     self::$fileSuffix = $fileSuffix;
   }
 
-  public static function resetSequence()
-  {
-    \FactoryGirl\Sequence::resetAll();
-  }
-
   /**
    * @return $class object (not saved)
    */
@@ -55,27 +50,24 @@ class Factory
   public static function create($class, $args = array(), $alias = null)
   {
     $obj = self::buildClass($class, $args, $alias);
-    if($obj->save()) {
+    $classAttr = self::getFactory($class);
+    if(isset($classAttr['save']))
+    {
+      $saveArgs = $classAttr['save'];
+      $saveMethod = array_shift($saveArgs);
+      if(count($saveArgs) > 0 && $obj->{$saveMethod}($saveArgs) || $obj->{$saveMethod}())
+      {
+        self::$createdClasses[$class] = true;
+        return $obj;
+      }
+    }
+    elseif($obj->save())
+    {
       self::$createdClasses[$class] = true;
       return $obj;
-    } else {
-      throw new FactoryException('Cannot Save ' . $class, $obj);
     }
-  }
 
-  public static function clear()
-  {
-    self::$cache = array();
-  }
-
-  public static function setFactoryPath($path)
-  {
-    self::$factoryPath = $path;
-  }
-
-  public static function setFileSuffix($fileSuffix)
-  {
-    self::$fileSuffix = $fileSuffix;
+    throw new FactoryException('Cannot Save ' . $class, $obj);
   }
 
   protected static function buildClass($class, $args = array(), $alias = null)
@@ -126,6 +118,26 @@ class Factory
     foreach (self::$createdClasses as $className => $value) {
       $className::model() -> deleteAll();
     }
+  }
+
+  public static function clear()
+  {
+    self::$cache = array();
+  }
+
+  public static function resetSequence()
+  {
+    \FactoryGirl\Sequence::resetAll();
+  }
+
+  public static function setFactoryPath($path)
+  {
+    self::$factoryPath = $path;
+  }
+
+  public static function setFileSuffix($fileSuffix)
+  {
+    self::$fileSuffix = $fileSuffix;
   }
 }
 

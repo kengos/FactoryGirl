@@ -60,6 +60,12 @@ class FactoryTest extends PHPUnit_Framework_TestCase
 
     FactoryGirl::flush();
   }
+
+  public function testCanUseAnotherSaveMethod()
+  {
+    $baz = FactoryGirl::create('Baz');
+    $this->assertEquals('generate', $baz->name);
+  }
 }
 
 class Foo
@@ -92,5 +98,16 @@ class Bar
   public function save()
   {
     return false;
+  }
+}
+
+class Baz
+{
+  public $name;
+
+  public function generate()
+  {
+    $this->name = 'generate';
+    return true;
   }
 }
