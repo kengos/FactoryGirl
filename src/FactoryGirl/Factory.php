@@ -168,7 +168,7 @@ class Factory
       if(method_exists($obj, $key))
       {
         if(is_array($value))
-          call_user_func_array([$obj, $key], $value);
+          call_user_func_array(array($obj, $key), $value);
         else
           $obj->{$key}($value);
       }
