@@ -18,7 +18,10 @@ class Factory
   protected static $_createdClasses = array();
   protected static $_definitions = array();
 
-
+  /**
+   * @example
+   *   FactoryGirl::setup(['your/factory/path']);
+   */
   public static function setup($factoryPaths, $fileSuffix = null)
   {
     self::setFactoryPaths($factoryPaths);
@@ -27,7 +30,8 @@ class Factory
   }
 
   /**
-   * @return $class object (not saved)
+   * Build Object
+   * @return $class object
    */
   public static function build($class, $args = array(), $alias = null)
   {
@@ -86,8 +90,19 @@ class Factory
 
     $obj = isset($classAttr['class']) ? new $classAttr['class'] : new $class;
     $attributes = self::buildAttributes($class, $args, $alias);
-    foreach ($attributes as $key => $value) {
-      $obj->$key = $value;
+    foreach ($attributes as $key => $value)
+    {
+      if(method_exists($obj, $key))
+      {
+        if(is_array($value))
+          call_user_func_array([$obj, $key], $value);
+        else
+          $obj->{$key}($value);
+      }
+      else
+      {
+        $obj->$key = $value;
+      }
     }
     return $obj;
   }

@@ -73,6 +73,19 @@ class FactoryTest extends PHPUnit_Framework_TestCase
     FactoryGirl::flush();
   }
 
+  public function testBuildClass()
+  {
+    FactoryGirl::defineFactory('Foobar', 'Foo', ['generate' => array('foo', 'bar')]);
+    // should call generate('foo', 'bar')
+    $foobar = FactoryGirl::build('Foobar');
+    $this->assertEquals('foo', $foobar->name);
+    $this->assertEquals('bar', $foobar->code);
+
+    FactoryGirl::defineFactory('Barbaz', 'Foo', ['setName' => 'abc']);
+    $barbaz = FactoryGirl::build('Barbaz');
+    $this->assertEquals('abc', $barbaz->name);
+  }
+
   /**
    * test defineFactory callback & another save method
    */
@@ -120,6 +133,11 @@ class Foo
     $this->name = $name;
     $this->code = $code;
     return $this->save();
+  }
+
+  public function setName($value)
+  {
+    $this->name = $value;
   }
 }
 
