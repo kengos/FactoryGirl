@@ -14,7 +14,7 @@ end
 
 def run_phpunit(filename)
   puts "\n>> run: #{filename} @ #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
-  result = `./phpunit --bootstrap tests/bootstrap.php --verbose #{filename}`
+  result = `phpunit --bootstrap tests/bootstrap.php --verbose #{filename}`
   test_result = result.split(/\r\n|\r|\n/).last
 
   filename = File.basename(filename)
