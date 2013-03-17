@@ -1,10 +1,13 @@
 <?php
 
-class FactoryGirlTest extends PHPUnit_Framework_TestCase
+use FactoryGirl\Factory as FactoryGirl;
+
+class FactoryTest extends PHPUnit_Framework_TestCase
 {
   public function setup()
   {
-    FactorySequence::resetAll();
+    FactoryGirl::setup(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'factories');
+    FactoryGirl::resetAll();
   }
 
   public function testCreate()
@@ -19,7 +22,7 @@ class FactoryGirlTest extends PHPUnit_Framework_TestCase
 
   /**
    * save method returns false, throw FactoryException
-   * @expectedException FactoryException
+   * @expectedException FactoryGirl\FactoryException
    */
   public function testCreateFailure()
   {
@@ -49,8 +52,8 @@ class FactoryGirlTest extends PHPUnit_Framework_TestCase
 
   public function testFlush()
   {
-    $fooModel = $this -> getMock("Model", array("deleteAll")); 
-    $bazModel = $this -> getMock("Model", array("deleteAll")); 
+    $fooModel = $this -> getMock("Model", array("deleteAll"));
+    $bazModel = $this -> getMock("Model", array("deleteAll"));
     Foo::$_model = $fooModel;
     Baz::$_model = $bazModel;
 
@@ -68,6 +71,30 @@ class FactoryGirlTest extends PHPUnit_Framework_TestCase
 
     $baz = FactoryGirl::create("Baz");
     FactoryGirl::flush();
+  }
+
+  /**
+   * test defineFactory callback & another save method
+   */
+  public function testCanUseAnotherSaveMethod()
+  {
+    $callback = function($attrs) {
+      $attrs['save'] = array('generate', 'aaaa', 'bbbb');
+      return $attrs;
+    };
+    FactoryGirl::defineFactory('Foobar', 'Foo', ['code' => 'defineCode'], $callback);
+    $foobar = FactoryGirl::create('Foobar');
+    $this->assertEquals('aaaa', $foobar->name);
+    $this->assertEquals('bbbb', $foobar->code);
+  }
+
+  public function testDefineFactory()
+  {
+    FactoryGirl::defineFactory('Foobar', 'Foo', ['code' => 'defineCode', 'name' => 'define_{{sequence}}']);
+    $foobar = FactoryGirl::create('Foobar');
+    $this->assertTrue($foobar instanceof Foo);
+    $this->assertEquals('defineCode', $foobar->code);
+    $this->assertEquals('define_0', $foobar->name);
   }
 }
 
@@ -88,6 +115,12 @@ class Foo
     return self::$_model;
   }
 
+  public function generate($name, $code)
+  {
+    $this->name = $name;
+    $this->code = $code;
+    return $this->save();
+  }
 }
 
 class Baz {
@@ -118,4 +151,3 @@ class Bar
     return false;
   }
 }
-
