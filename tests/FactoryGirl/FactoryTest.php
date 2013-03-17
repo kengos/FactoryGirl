@@ -7,7 +7,7 @@ class FactoryTest extends PHPUnit_Framework_TestCase
   public function setup()
   {
     FactoryGirl::setup(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'factories');
-    FactoryGirl::resetSequence();
+    FactoryGirl::resetAll();
   }
 
   public function testCreate()
@@ -65,6 +65,15 @@ class FactoryTest extends PHPUnit_Framework_TestCase
   {
     $baz = FactoryGirl::create('Baz');
     $this->assertEquals('generate', $baz->name);
+  }
+
+  public function testDefineFactory()
+  {
+    FactoryGirl::defineFactory('Foobar', 'Foo', ['code' => 'defineCode', 'name' => 'define_{{sequence}}']);
+    $foobar = FactoryGirl::create('Foobar');
+    $this->assertTrue($foobar instanceof Foo);
+    $this->assertEquals('defineCode', $foobar->code);
+    $this->assertEquals('define_0', $foobar->name);
   }
 }
 

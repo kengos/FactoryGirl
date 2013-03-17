@@ -16,10 +16,12 @@ class Factory
   protected static $_factoryPaths = array();
   protected static $_fileSuffix = 'Factory.php';
   protected static $_createdClasses = array();
+  protected static $_definitions = array();
+
 
   public static function setup($factoryPaths, $fileSuffix = null)
   {
-    self::setFactoryPath($factoryPaths);
+    self::setFactoryPaths($factoryPaths);
     if(is_string($fileSuffix))
       self::setFileSuffix($fileSuffix);
   }
@@ -66,6 +68,17 @@ class Factory
     throw new FactoryException('Cannot Save ' . $class, $obj);
   }
 
+  public static function defineFactory($name, $class, $attributes, $callback = null)
+  {
+    $classAttr = array();
+    $classAttr['class'] = $class;
+    $classAttr['attributes'] = $attributes;
+    if(is_callable($callback))
+      $classAttr = $callback($classAttr);
+
+    self::$_definitions[$name] = $classAttr;
+  }
+
   protected static function buildClass(&$class, &$args, &$alias)
   {
     $classAttr = self::getFactory($class);
@@ -94,6 +107,9 @@ class Factory
 
   protected static function getFactory(&$class)
   {
+    if(isset(self::$_definitions[$class]))
+      return self::$_definitions[$class];
+
     if(isset(self::$_cache[$class]))
       return self::$_cache[$class];
 
@@ -111,11 +127,15 @@ class Factory
     foreach (self::$_createdClasses as $className => $value) {
       $className::model() -> deleteAll();
     }
+    self::$_createdClasses = array();
   }
 
-  public static function clear()
+  public static function resetAll()
   {
     self::$_cache = array();
+    self::resetCreatedClasses();
+    self::resetDefinitions();
+    self::resetSequence();
   }
 
   public static function resetSequence()
@@ -123,7 +143,17 @@ class Factory
     \FactoryGirl\Sequence::resetAll();
   }
 
-  public static function setFactoryPath($path)
+  public static function resetDefinitions()
+  {
+    self::$_definitions = array();
+  }
+
+  public static function resetCreatedClasses()
+  {
+    self::$_createdClasses = array();
+  }
+
+  public static function setFactoryPaths($path)
   {
     if(is_string($path))
       self::$_factoryPaths[] = $path;
