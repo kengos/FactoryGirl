@@ -12,20 +12,16 @@ namespace FactoryGirl;
  */
 class Factory
 {
-  public static $cache;
-  public static $factoryPaths;
-  public static $fileSuffix;
+  protected static $_cache = array();
+  protected static $_factoryPaths = array();
+  protected static $_fileSuffix = 'Factory.php';
+  protected static $_createdClasses = array();
 
-  private static $createdClasses = array();
-
-  public static function setup($factoryPaths, $fileSuffix = 'Factory.php')
+  public static function setup($factoryPaths, $fileSuffix = null)
   {
-    self::$factoryPaths = array();
-    if(is_string($factoryPaths))
-      self::$factoryPaths[] = $factoryPaths;
-    elseif(is_array($factoryPaths))
-      self::$factoryPaths = $factoryPaths;
-    self::$fileSuffix = $fileSuffix;
+    self::setFactoryPath($factoryPaths);
+    if(is_string($fileSuffix))
+      self::setFileSuffix($fileSuffix);
   }
 
   /**
@@ -57,20 +53,20 @@ class Factory
       $saveMethod = array_shift($saveArgs);
       if(count($saveArgs) > 0 && $obj->{$saveMethod}($saveArgs) || $obj->{$saveMethod}())
       {
-        self::$createdClasses[$class] = true;
+        self::$_createdClasses[$class] = true;
         return $obj;
       }
     }
     elseif($obj->save())
     {
-      self::$createdClasses[$class] = true;
+      self::$_createdClasses[$class] = true;
       return $obj;
     }
 
     throw new FactoryException('Cannot Save ' . $class, $obj);
   }
 
-  protected static function buildClass($class, $args = array(), $alias = null)
+  protected static function buildClass(&$class, &$args, &$alias)
   {
     $classAttr = self::getFactory($class);
 
@@ -82,7 +78,7 @@ class Factory
     return $obj;
   }
 
-  protected static function buildAttributes($class, $args = array(), $alias = null)
+  protected static function buildAttributes(&$class, &$args, &$alias)
   {
     $classAttr = self::getFactory($class);
     $attributes = $classAttr['attributes'];
@@ -96,33 +92,30 @@ class Factory
     return $attributes;
   }
 
-  protected static function getFactory($class)
+  protected static function getFactory(&$class)
   {
-    if(self::$cache===null)
-      self::$cache = array();
+    if(isset(self::$_cache[$class]))
+      return self::$_cache[$class];
 
-    if(isset(self::$cache[$class]))
-      return self::$cache[$class];
-
-    foreach (self::$factoryPaths as $path)
+    foreach (self::$_factoryPaths as $path)
     {
-      $file = $path . DIRECTORY_SEPARATOR . $class . self::$fileSuffix;
+      $file = $path . DIRECTORY_SEPARATOR . $class . self::$_fileSuffix;
       if(file_exists($file))
-        return self::$cache[$class] = require($file);
+        return self::$_cache[$class] = require($file);
     }
-    throw new \FactoryGirl\FactoryException('Not found factory file: ' . $class . self::$fileSuffix);
+    throw new \FactoryGirl\FactoryException('Not found factory file: ' . $class . self::$_fileSuffix);
   }
 
   public static function flush()
   {
-    foreach (self::$createdClasses as $className => $value) {
+    foreach (self::$_createdClasses as $className => $value) {
       $className::model() -> deleteAll();
     }
   }
 
   public static function clear()
   {
-    self::$cache = array();
+    self::$_cache = array();
   }
 
   public static function resetSequence()
@@ -132,12 +125,15 @@ class Factory
 
   public static function setFactoryPath($path)
   {
-    self::$factoryPath = $path;
+    if(is_string($path))
+      self::$_factoryPaths[] = $path;
+    elseif(is_array($path))
+      self::$_factoryPaths = $path;
   }
 
   public static function setFileSuffix($fileSuffix)
   {
-    self::$fileSuffix = $fileSuffix;
+    self::$_fileSuffix = $fileSuffix;
   }
 }
 
