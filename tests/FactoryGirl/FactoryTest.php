@@ -61,10 +61,19 @@ class FactoryTest extends PHPUnit_Framework_TestCase
     FactoryGirl::flush();
   }
 
+  /**
+   * test defineFactory callback & another save method
+   */
   public function testCanUseAnotherSaveMethod()
   {
-    $baz = FactoryGirl::create('Baz');
-    $this->assertEquals('generate', $baz->name);
+    $callback = function($attrs) {
+      $attrs['save'] = array('generate', 'aaaa', 'bbbb');
+      return $attrs;
+    };
+    FactoryGirl::defineFactory('Foobar', 'Foo', ['code' => 'defineCode'], $callback);
+    $foobar = FactoryGirl::create('Foobar');
+    $this->assertEquals('aaaa', $foobar->name);
+    $this->assertEquals('bbbb', $foobar->code);
   }
 
   public function testDefineFactory()
@@ -94,6 +103,12 @@ class Foo
     return self::$_model;
   }
 
+  public function generate($name, $code)
+  {
+    $this->name = $name;
+    $this->code = $code;
+    return $this->save();
+  }
 }
 
 class Model {
@@ -107,16 +122,5 @@ class Bar
   public function save()
   {
     return false;
-  }
-}
-
-class Baz
-{
-  public $name;
-
-  public function generate()
-  {
-    $this->name = 'generate';
-    return true;
   }
 }

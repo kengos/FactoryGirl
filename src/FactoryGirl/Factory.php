@@ -53,7 +53,8 @@ class Factory
     {
       $saveArgs = $classAttr['save'];
       $saveMethod = array_shift($saveArgs);
-      if(count($saveArgs) > 0 && $obj->{$saveMethod}($saveArgs) || $obj->{$saveMethod}())
+      $result = count($saveArgs) > 0 ? call_user_func_array(array($obj, $saveMethod), $saveArgs) : $obj->{$saveMethod}();
+      if($result)
       {
         self::$_createdClasses[$class] = true;
         return $obj;
