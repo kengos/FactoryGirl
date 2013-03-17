@@ -49,12 +49,24 @@ class FactoryGirlTest extends PHPUnit_Framework_TestCase
 
   public function testFlush()
   {
-    $foo = FactoryGirl::create("Foo");
-    $model = $this -> getMock("Model", array("deleteAll"));
-    $model -> expects($this -> once())
-      -> method("deleteAll");
-    Foo::$_model = $model;
+    $fooModel = $this -> getMock("Model", array("deleteAll")); 
+    $bazModel = $this -> getMock("Model", array("deleteAll")); 
+    Foo::$_model = $fooModel;
+    Baz::$_model = $bazModel;
 
+    $fooModel -> expects($this -> once())
+      -> method("deleteAll");
+
+    $foo = FactoryGirl::create("Foo");
+    FactoryGirl::flush();
+
+    // when flushing the second time, the previous classes should be removed
+    $fooModel -> expects($this -> never())
+      -> method("deleteAll");
+    $bazModel -> expects($this -> once())
+      -> method("deleteAll");
+
+    $baz = FactoryGirl::create("Baz");
     FactoryGirl::flush();
   }
 }
@@ -76,6 +88,21 @@ class Foo
     return self::$_model;
   }
 
+}
+
+class Baz {
+
+  public static $_model;
+
+  public function save()
+  {
+    return true;
+  }
+
+  public static function model()
+  {
+    return self::$_model;
+  }
 }
 
 class Model {
