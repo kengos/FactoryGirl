@@ -12,8 +12,8 @@ Download [factory_girl_0.1.0.phar](https://github.com/kengos/FactoryGirl/raw/mas
 
 In your bootstrap.php
 
-```
-require_once(DOWNLOAD_PATH . '/factory_girl_0.1.0.phar');
+```php
+require_once('/your/download/path/factory_girl_0.1.0.phar');
 use FactoryGirl\Factory as FactoryGirl;
 $factoryPaths = ['foo/bar/factories', 'bar/baz/factories'];
 FactoryGirl::setup($factoryPaths);
@@ -21,7 +21,7 @@ FactoryGirl::setup($factoryPaths);
 
 ## Usage
 
-```
+```php
 FactoryGirl::build('User')
 
 FactoryGirl::create('User')
@@ -31,7 +31,7 @@ FactoryGirl::attributes('User')
 
 ## Factory file format
 
-```
+```php
 <?php
 // FileName UserFactory.php
 return array(
@@ -66,7 +66,7 @@ more details see `tests/FactoryGirl/FactoryTest.php`
 
 ## FactoryGirl Sequence
 
-```
+```php
 <?php
 
 return array(
@@ -81,6 +81,10 @@ return array(
 ```
 FactoryGirl::build('Foo')->name // -> bar_0
 FactoryGirl::build('Foo')->name // -> bar_1
+
+// reset sequence number
+FactoryGirl::resetSequence();
+FactoryGirl::build('Foo')->name // -> bar_0
 ```
 
 more details see `tests/FactorySequenceTest.php`
@@ -120,6 +124,8 @@ FactoryGirl::create('User');
 // $user->setName('foo');
 // $user->generatePassword('plain_password', 'seed');
 ```
+
+known issue: could not use FactoryGirl::attributes('User');
 
 ## Contributing
 
