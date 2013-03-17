@@ -49,7 +49,7 @@ class Compiler
     $phar->setDefaultStub('_cli_stub.php', '_web_stub.php');
 
     $phar->stopBuffering();
-    // $phar->compressFiles(\Phar::GZ);
+    $phar->compressFiles(\Phar::GZ);
     unset($phar);
   }
 
