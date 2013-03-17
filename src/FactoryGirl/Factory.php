@@ -17,16 +17,33 @@ class Factory
   protected static $_fileSuffix = 'Factory.php';
   protected static $_createdClasses = array();
   protected static $_definitions = array();
+  protected static $_tearDownMethods = array('resetDefinitions', 'flush');
 
   /**
    * @example
    *   FactoryGirl::setup(['your/factory/path']);
    */
-  public static function setup($factoryPaths, $fileSuffix = null)
+  public static function setup($factoryPaths, $fileSuffix = null, $tearDownMethods = null)
   {
     self::setFactoryPaths($factoryPaths);
     if(is_string($fileSuffix))
       self::setFileSuffix($fileSuffix);
+    if(is_array($tearDownMethods))
+      self::setTearDownMethods($tearDownMethods);
+  }
+
+  /**
+   * @example In your test
+   *  public function tearDown(){
+   *    FactoryGirl::tearDown();
+   *  }
+   */
+  public static function tearDown()
+  {
+    foreach (self::$_tearDownMethods as $method)
+    {
+      call_user_func(array('\FactoryGirl\Factory', $method));
+    }
   }
 
   /**
@@ -73,6 +90,9 @@ class Factory
     throw new FactoryException('Cannot Save ' . $class, $obj);
   }
 
+  /**
+   * Defined factory
+   */
   public static function defineFactory($name, $class, $attributes, $callback = null)
   {
     $classAttr = array();
@@ -83,6 +103,59 @@ class Factory
 
     self::$_definitions[$name] = $classAttr;
   }
+
+  /**
+   * Clear created class object (called Foo::model()->deleteAll())
+   */
+  public static function flush()
+  {
+    foreach (self::$_createdClasses as $className => $value) {
+      $className::model() -> deleteAll();
+    }
+    self::$_createdClasses = array();
+  }
+
+  public static function resetAll()
+  {
+    self::$_cache = array();
+    self::resetCreatedClasses();
+    self::resetDefinitions();
+    self::resetSequence();
+  }
+
+  public static function resetSequence()
+  {
+    \FactoryGirl\Sequence::resetAll();
+  }
+
+  public static function resetDefinitions()
+  {
+    self::$_definitions = array();
+  }
+
+  public static function resetCreatedClasses()
+  {
+    self::$_createdClasses = array();
+  }
+
+  public static function setFactoryPaths($path)
+  {
+    if(is_string($path))
+      self::$_factoryPaths[] = $path;
+    elseif(is_array($path))
+      self::$_factoryPaths = $path;
+  }
+
+  public static function setFileSuffix($fileSuffix)
+  {
+    self::$_fileSuffix = $fileSuffix;
+  }
+
+  public static function setTearDownMethods(array $methods)
+  {
+    self::$_tearDownMethods = $methods;
+  }
+
 
   protected static function buildClass(&$class, &$args, &$alias)
   {
@@ -136,50 +209,6 @@ class Factory
         return self::$_cache[$class] = require($file);
     }
     throw new \FactoryGirl\FactoryException('Not found factory file: ' . $class . self::$_fileSuffix);
-  }
-
-  public static function flush()
-  {
-    foreach (self::$_createdClasses as $className => $value) {
-      $className::model() -> deleteAll();
-    }
-    self::$_createdClasses = array();
-  }
-
-  public static function resetAll()
-  {
-    self::$_cache = array();
-    self::resetCreatedClasses();
-    self::resetDefinitions();
-    self::resetSequence();
-  }
-
-  public static function resetSequence()
-  {
-    \FactoryGirl\Sequence::resetAll();
-  }
-
-  public static function resetDefinitions()
-  {
-    self::$_definitions = array();
-  }
-
-  public static function resetCreatedClasses()
-  {
-    self::$_createdClasses = array();
-  }
-
-  public static function setFactoryPaths($path)
-  {
-    if(is_string($path))
-      self::$_factoryPaths[] = $path;
-    elseif(is_array($path))
-      self::$_factoryPaths = $path;
-  }
-
-  public static function setFileSuffix($fileSuffix)
-  {
-    self::$_fileSuffix = $fileSuffix;
   }
 }
 
