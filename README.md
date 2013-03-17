@@ -6,7 +6,18 @@ Like Ruby gem `factory_girl`
 
 ## Install
 
-Download FacotyGirl.tgz or `git clone git://github.com/kengos/FactoryGirl.git protected/extensions/`
+Download releases/factory_girl_0.1.0.phar
+
+## Setup
+
+In Your bootstrap.php
+
+```
+require_once(DOWNLOAD_PATH . '/factory_girl_0.1.0.phar');
+use FactoryGirl\Factory as FactoryGirl;
+$factoryPaths = ['foo/bar/factories', 'bar/baz/factories'];
+FactoryGirl::setup($factoryPaths);
+```
 
 ## Usage
 
@@ -51,7 +62,7 @@ $admin->permission; // -> 'admin'
 FactoryGirl::flush(); // remove created records
 ```
 
-more details see `tests/FactoryGirlTest.php`
+more details see `tests/FactoryGirl/FactoryTest.php`
 
 ## FactoryGirl Sequence
 
@@ -73,6 +84,10 @@ FactoryGirl::build('Foo')->name // -> bar_1
 ```
 
 more details see `tests/FactorySequenceTest.php`
+
+## Development
+
+
 
 ## Contributing
 

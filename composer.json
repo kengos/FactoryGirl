@@ -1,0 +1,20 @@
+{
+    "name": "kengos/factory_girl",
+    "type": "application",
+    "description": "fixtures replacement tool for Yii framework",
+    "keywords": ["test fixture"],
+    "homepage": "https://github.com/kengos/FactoryGirl",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kengo Suzuki",
+            "email": "kengo@kengos.jp"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-0": { "FactoryGirl": "src/" }
+    }
+}

@@ -1,0 +1,107 @@
+#!/usr/bin/env php
+<?php
+
+require_once(__DIR__ . '/src/FactoryGirl/Version.php');
+
+$compiler = new Compiler;
+$compiler->run();
+
+// namespace FactoryGirl\Compiler;
+
+class Compiler
+{
+  public $pharFile;
+
+  public function run()
+  {
+    $version = \FactoryGirl\Version::VERSION;
+    $this->pharFile = __DIR__ . '/releases/factory_girl_' . $version . '.phar';
+    if (file_exists($this->pharFile))
+      unlink($this->pharFile);
+
+    $this->compile();
+    if($this->runTest())
+    {
+      echo "compiled!\n";
+    }
+    else
+    {
+      echo "compile filed\n";
+    }
+  }
+
+  public function compile()
+  {
+    $phar = new \Phar($this->pharFile, 0, 'FactoryGirl');
+    $phar->setSignatureAlgorithm(\Phar::SHA1);
+
+    $phar->startBuffering();
+
+    // CLI Component files
+    foreach ($this->getFiles() as $file) {
+      $path = str_replace(__DIR__.'/', '', $file);
+      $phar->addFromString($path, file_get_contents($file));
+    }
+
+    // Stubs
+    $phar['_cli_stub.php'] = $this->getCliStub();
+    $phar['_web_stub.php'] = $this->getWebStub();
+    $phar->setDefaultStub('_cli_stub.php', '_web_stub.php');
+
+    $phar->stopBuffering();
+    $phar->compressFiles(\Phar::GZ);
+    unset($phar);
+  }
+
+  public function runTest()
+  {
+    require($this->pharFile);
+    FactoryGirl\Factory::defineFactory('Foo', 'Foo', ['name' => 'name_{{sequence}}']);
+    $foo = FactoryGirl\Factory::create('Foo');
+    return $foo->name === 'name_0';
+  }
+
+  protected function getCliStub()
+  {
+    return "<?php ".$this->getLicense()." require_once __DIR__.'/vendor/autoload.php'; __HALT_COMPILER();";
+  }
+
+  protected function getWebStub()
+  {
+    return "<?php throw new \LogicException('This PHAR file can only be used from the CLI.'); __HALT_COMPILER();";
+  }
+
+  protected function getLicense()
+  {
+    return '
+/**
+ *
+ * (c) Kengo Suzuki <kengo@kengos.jp>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ **/';
+  }
+
+  protected function getFiles()
+  {
+    return array(
+      'LICENSE',
+      'src/FactoryGirl/Factory.php',
+      'src/FactoryGirl/Sequence.php',
+      'src/FactoryGirl/Version.php',
+      'vendor/autoload.php',
+      'vendor/composer/autoload_classmap.php',
+      'vendor/composer/autoload_namespaces.php',
+      'vendor/composer/autoload_real.php',
+      'vendor/composer/ClassLoader.php',
+      'vendor/composer/include_paths.php',
+    );
+  }
+}
+
+class Foo
+{
+  public $name;
+  public function save(){ return true; }
+}
