@@ -6,11 +6,11 @@ Like Ruby gem `factory_girl`
 
 ## Install
 
-Download releases/factory_girl_0.1.0.phar
+Download [factory_girl_0.1.0.phar](https://github.com/kengos/FactoryGirl/raw/master/releases/factory_girl_0.1.0.phar)
 
 ## Setup
 
-In Your bootstrap.php
+In your bootstrap.php
 
 ```
 require_once(DOWNLOAD_PATH . '/factory_girl_0.1.0.phar');
@@ -85,9 +85,41 @@ FactoryGirl::build('Foo')->name // -> bar_1
 
 more details see `tests/FactorySequenceTest.php`
 
-## Development
+## Tips
 
+### If you can not use save method
 
+```php
+// UserFactory.php
+return array(
+  'class' => 'User',
+  'attributes' => array(),
+  'save' => array('generate'),
+);
+
+// In your test
+FactoryGirl::create('User');
+// called `generate`, instead of `save`
+```
+
+### If you want to set protected or private variable
+
+```php
+// UserFactory.php
+return array(
+  'class' => 'User',
+  'attributes' => array(
+    'setName' => 'foo',
+    'generatePassword' => array('plain_password', 'seed'), 
+  ),
+);
+
+// In your test
+FactoryGirl::create('User');
+// $user = new User;
+// $user->setName('foo');
+// $user->generatePassword('plain_password', 'seed');
+```
 
 ## Contributing
 
