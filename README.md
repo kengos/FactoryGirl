@@ -15,7 +15,7 @@ In your bootstrap.php
 ```php
 require_once('/your/download/path/factory_girl_0.1.0.phar');
 use FactoryGirl\Factory as FactoryGirl;
-$factoryPaths = ['foo/bar/factories', 'bar/baz/factories'];
+$factoryPaths = array('foo/bar/factories', 'bar/baz/factories');
 FactoryGirl::setup($factoryPaths);
 ```
 
